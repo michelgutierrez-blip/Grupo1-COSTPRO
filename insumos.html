@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestión de Insumos — CostPro</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="./src/insumos.css">
+</head>
+<body>
+
+<!-- NAVBAR -->
+<header class="navbar">
+  <button id="menuBtn" class="menu-btn">
+    <i class="fa-solid fa-bars"></i>
+    MENÚ
+  </button>
+  <div class="admin-user">
+    <span>Bienvenido Administrador</span>
+    <i class="fa-regular fa-circle-user"></i>
+  </div>
+</header>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <ul>
+    <li><a href="panel_principal.html"><i class="fas fa-home"></i> Inicio</a></li>
+    <li><a href="insumos.html"><i class="fas fa-box"></i> Insumos</a></li>
+    <li><a href="productos.html"><i class="fas fa-cube"></i> Productos</a></li>
+    <li><a href="costos.html"><i class="fas fa-dollar-sign"></i> Costos</a></li>
+    <li><a href="equilibrio.html"><i class="fas fa-scale-balanced"></i> Punto de equilibrio</a></li>
+    <li><a href="usuarios.html"><i class="fas fa-users"></i> Usuarios y Roles</a></li>
+    <li><a href="analisis.html"><i class="fas fa-chart-pie"></i> Análisis</a></li>
+    <li><a href="reportes.html" class="activo"><i class="fas fa-file-alt"></i> Reportes</a></li>
+    <li><a href="auditoria.html"><i class="fas fa-clipboard-list"></i> Auditoría</a></li>
+    <li><a href="configuracion.html"><i class="fas fa-cog"></i> Configuración</a></li>
+    <li><a href="login.html"><i class="fas fa-sign-out-alt"></i> Cerrar sesión</a></li>
+  </ul>
+</aside>
+
+<main>
+  <div class="header">
+    <h1><i class="fas fa-box"></i> Gestión de Insumos</h1>
+    <p>Registra, consulta, edita y elimina los insumos y materias primas del proceso de producción</p>
+  </div>
+
+  <!-- TARJETAS RESUMEN -->
+  <div class="tarjetas-resumen" id="tarjetasResumen"></div>
+
+  <!-- TABLA DE INSUMOS (HU-04: consulta con buscador + HU-03: acciones CRUD) -->
+  <section class="seccion">
+    <div class="seccion-head">
+      <div>
+        <h2><i class="fas fa-boxes-stacked"></i> Listado de insumos</h2>
+        <p>Consulta cantidad disponible y precio unitario. Usa el buscador para filtrar por nombre.</p>
+      </div>
+      <div class="seccion-head-btns">
+        <button class="btn-secundario" id="btnVerProveedores">
+          <i class="fas fa-truck"></i> Proveedores
+        </button>
+        <button class="btn-primario" id="btnNuevoInsumo">
+          <i class="fas fa-plus"></i> Nuevo insumo
+        </button>
+      </div>
+    </div>
+
+    <!-- FILTROS (HU-04) -->
+    <div class="filtros-bar">
+      <div class="filtro-wrap">
+        <i class="fas fa-search filtro-icono"></i>
+        <input type="text" id="campoBuscar" class="filtro-input" placeholder="Buscar por nombre…">
+      </div>
+      <select id="filtroCategoria" class="filtro-select">
+        <option value="">Todas las categorías</option>
+        <option value="Materia prima">Materia prima</option>
+        <option value="Insumo químico">Insumo químico</option>
+        <option value="Embalaje">Embalaje</option>
+        <option value="Herramienta">Herramienta</option>
+        <option value="Otro">Otro</option>
+      </select>
+      <select id="filtroStock" class="filtro-select">
+        <option value="">Todo el stock</option>
+        <option value="bajo">Stock bajo</option>
+        <option value="medio">Stock medio</option>
+        <option value="ok">Stock suficiente</option>
+      </select>
+    </div>
+
+    <div class="tabla-wrap">
+      <table class="tabla-insumos">
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Categoría</th>
+            <th>Cantidad disponible</th>
+            <th>Unidad</th>
+            <th>Precio unitario</th>
+            <th>Proveedor</th>
+            <th>Estado stock</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tablaBody"></tbody>
+      </table>
+    </div>
+
+    <div class="vacio-estado" id="estadoVacio" style="display:none;">
+      <i class="fas fa-box-open"></i>
+      <p>No se encontraron insumos con ese criterio.</p>
+    </div>
+
+    <div class="paginacion" id="paginacion">
+      <div class="paginacion-info" id="paginacionInfo"></div>
+      <div class="paginacion-btns" id="paginacionBtns"></div>
+    </div>
+  </section>
+
+  <!-- TABLA DE PROVEEDORES -->
+  <section class="seccion" id="seccionProveedores">
+    <div class="seccion-head">
+      <div>
+        <h2><i class="fas fa-truck"></i> Proveedores</h2>
+        <p>Consulta, edita y elimina los proveedores registrados para tus insumos.</p>
+      </div>
+      <button class="btn-primario" id="btnNuevoProveedor">
+        <i class="fas fa-plus"></i> Nuevo proveedor
+      </button>
+    </div>
+
+    <div class="tabla-wrap">
+      <table class="tabla-insumos">
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Correo</th>
+            <th>Teléfono</th>
+            <th>Descripción</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tablaProveedoresBody"></tbody>
+      </table>
+    </div>
+
+    <div class="vacio-estado" id="estadoVacioProveedores" style="display:none;">
+      <i class="fas fa-truck"></i>
+      <p>No tienes proveedores registrados todavía.</p>
+    </div>
+  </section>
+</main>
+
+<!-- MODAL: NUEVO / EDITAR INSUMO (HU-03) -->
+<div class="modal-overlay" id="modalInsumo">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h2 id="modalTitulo"><i class="fas fa-plus"></i> Nuevo insumo</h2>
+      <button class="modal-cerrar" id="btnCerrarInsumo"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="insumoId">
+      <div class="campo">
+        <label>Nombre <span class="req">*</span></label>
+        <input type="text" id="campoNombre" placeholder="Ej: Madera pino">
+      </div>
+      <div class="campo">
+        <label>Categoría</label>
+        <select id="campoCategoria">
+          <option value="Materia prima">Materia prima</option>
+          <option value="Insumo químico">Insumo químico</option>
+          <option value="Embalaje">Embalaje</option>
+          <option value="Herramienta">Herramienta</option>
+          <option value="Otro">Otro</option>
+        </select>
+      </div>
+      <div class="campos-fila">
+        <div class="campo">
+          <label>Cantidad disponible <span class="req">*</span></label>
+          <input type="number" id="campoCantidad" min="0" step="0.01" placeholder="0">
+        </div>
+        <div class="campo">
+          <label>Unidad de medida <span class="req">*</span></label>
+          <select id="campoUnidad">
+            <option value="unidad">unidad</option>
+            <option value="kg">kg</option>
+            <option value="g">g</option>
+            <option value="litro">litro</option>
+            <option value="ml">ml</option>
+            <option value="metro">metro</option>
+            <option value="cm">cm</option>
+            <option value="rollo">rollo</option>
+            <option value="caja">caja</option>
+            <option value="bolsa">bolsa</option>
+          </select>
+        </div>
+      </div>
+      <div class="campo">
+        <label>Precio unitario <span class="req">*</span></label>
+        <div class="input-prefix-wrap">
+          <span class="input-prefix">$</span>
+          <input type="number" id="campoPrecio" min="0" step="100" placeholder="0">
+        </div>
+      </div>
+      <div class="campo">
+        <label>Proveedor</label>
+        <select id="campoProveedor">
+          <option value="">Sin proveedor</option>
+        </select>
+      </div>
+      <div class="campo">
+        <label>Stock mínimo de alerta</label>
+        <input type="number" id="campoStockMin" min="0" step="1" placeholder="Ej: 5">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secundario" id="btnCancelarInsumo">Cancelar</button>
+      <button class="btn-primario" id="btnGuardarInsumo"><i class="fas fa-check"></i> Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: CONFIRMAR ELIMINAR INSUMO (HU-03) -->
+<div class="modal-overlay" id="modalEliminar">
+  <div class="modal-box modal-chico">
+    <div class="modal-head modal-head-danger">
+      <h2><i class="fas fa-triangle-exclamation"></i> Eliminar insumo</h2>
+      <button class="modal-cerrar" id="btnCerrarEliminar"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="alerta-danger">
+        <i class="fas fa-circle-exclamation"></i>
+        <div>
+          <p>Estás a punto de eliminar <strong id="nombreInsumoEliminar"></strong>.</p>
+          <p class="alerta-sub">Esta acción no se puede deshacer.</p>
+        </div>
+      </div>
+      <div class="alerta-warning" id="advertenciaEnUso" style="display:none;">
+        <i class="fas fa-triangle-exclamation"></i>
+        <p id="textoEnUso"></p>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secundario" id="btnCancelarEliminar">Cancelar</button>
+      <button class="btn-danger" id="btnConfirmarEliminar"><i class="fas fa-trash"></i> Sí, eliminar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: NUEVO / EDITAR PROVEEDOR -->
+<div class="modal-overlay" id="modalProveedor">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h2 id="modalTituloProveedor"><i class="fas fa-plus"></i> Nuevo proveedor</h2>
+      <button class="modal-cerrar" id="btnCerrarProveedor"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="proveedorId">
+      <div class="campo">
+        <label>Nombre <span class="req">*</span></label>
+        <input type="text" id="campoProvNombre" placeholder="Ej: Maderas del Norte S.A.S.">
+      </div>
+      <div class="campo">
+        <label>Correo <span class="req">*</span></label>
+        <input type="email" id="campoProvCorreo" placeholder="Ej: contacto@maderasnorte.com">
+      </div>
+      <div class="campo">
+        <label>Teléfono / Contacto <span class="req">*</span></label>
+        <input type="text" id="campoProvTelefono" placeholder="Ej: 300 123 4567">
+      </div>
+      <div class="campo">
+        <label>Descripción</label>
+        <textarea id="campoProvDescripcion" rows="3" placeholder="Ej: Proveedor de madera de pino y roble, entregas en Bogotá"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secundario" id="btnCancelarProveedor">Cancelar</button>
+      <button class="btn-primario" id="btnGuardarProveedor"><i class="fas fa-check"></i> Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: CONFIRMAR ELIMINAR PROVEEDOR -->
+<div class="modal-overlay" id="modalEliminarProveedor">
+  <div class="modal-box modal-chico">
+    <div class="modal-head modal-head-danger">
+      <h2><i class="fas fa-triangle-exclamation"></i> Eliminar proveedor</h2>
+      <button class="modal-cerrar" id="btnCerrarEliminarProveedor"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="alerta-danger">
+        <i class="fas fa-circle-exclamation"></i>
+        <div>
+          <p>Estás a punto de eliminar <strong id="nombreProveedorEliminar"></strong>.</p>
+          <p class="alerta-sub">Esta acción no se puede deshacer.</p>
+        </div>
+      </div>
+      <div class="alerta-warning" id="advertenciaProveedorEnUso" style="display:none;">
+        <i class="fas fa-triangle-exclamation"></i>
+        <p id="textoProveedorEnUso"></p>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secundario" id="btnCancelarEliminarProveedor">Cancelar</button>
+      <button class="btn-danger" id="btnConfirmarEliminarProveedor"><i class="fas fa-trash"></i> Sí, eliminar</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <i class="fas fa-check-circle"></i>
+  <span id="toastMensaje"></span>
+</div>
+
+<script>
+/* ===== DATOS DE EJEMPLO: PROVEEDORES ===== */
+let proveedores = [
+  { id:1, nombre:"Maderas del Norte S.A.S.", correo:"contacto@maderasnorte.com", telefono:"300 123 4567", descripcion:"Proveedor de madera de pino y roble." },
+  { id:2, nombre:"Textiles Medellín", correo:"ventas@textilesmed.com", telefono:"304 555 1212", descripcion:"Telas para tapizado y confección." },
+  { id:3, nombre:"Ferretería Central", correo:"info@ferreteriacentral.com", telefono:"301 998 4521", descripcion:"Tornillos, clavos y herramientas en general." },
+  { id:4, nombre:"QuimicPro S.A.S.", correo:"pedidos@quimicpro.com", telefono:"310 777 8899", descripcion:"Insumos químicos: barnices, pinturas y selladores." },
+  { id:5, nombre:"Espumas Bogotá", correo:"contacto@espumasbogota.com", telefono:"311 222 3344", descripcion:"Espumas y rellenos para tapizado." },
+];
+
+/* ===== DATOS DE EJEMPLO: INSUMOS ===== */
+let insumos = [
+  { id:1, nombre:"Madera pino", categoria:"Materia prima", cantidad:45, unidad:"unidad", precio:8500, proveedorId:1, stockMin:10 },
+  { id:2, nombre:"Tela tapizado", categoria:"Materia prima", cantidad:8, unidad:"metro", precio:12000, proveedorId:2, stockMin:10 },
+  { id:3, nombre:"Tornillos acero", categoria:"Materia prima", cantidad:320, unidad:"unidad", precio:350, proveedorId:3, stockMin:50 },
+  { id:4, nombre:"Barniz acabado", categoria:"Insumo químico", cantidad:3, unidad:"litro", precio:22000, proveedorId:4, stockMin:5 },
+  { id:5, nombre:"Lija grano 120", categoria:"Herramienta", cantidad:24, unidad:"unidad", precio:1800, proveedorId:3, stockMin:10 },
+  { id:6, nombre:"Pintura base", categoria:"Insumo químico", cantidad:2, unidad:"litro", precio:18000, proveedorId:4, stockMin:4 },
+  { id:7, nombre:"Espuma tapizado", categoria:"Materia prima", cantidad:12, unidad:"kg", precio:9500, proveedorId:5, stockMin:5 },
+  { id:8, nombre:"Clavos 2 pulgadas", categoria:"Materia prima", cantidad:180, unidad:"unidad", precio:120, proveedorId:3, stockMin:30 },
+];
+
+/* Productos que usan cada insumo (para advertencia HU-03) */
+const insumosEnUso = {
+  1: ["Silla ergonómica mod. A", "Mesa de trabajo", "Repisa flotante"],
+  2: ["Silla ergonómica mod. A"],
+  3: ["Silla ergonómica mod. A", "Mesa de trabajo"],
+  4: ["Mesa de trabajo", "Repisa flotante"],
+  5: [],
+  6: [],
+  7: ["Silla ergonómica mod. A"],
+  8: ["Repisa flotante"],
+};
+
+let idEliminar = null;
+let idEliminarProveedor = null;
+const POR_PAGINA = 6;
+let paginaActual = 1;
+
+/* ===== SIDEBAR ===== */
+document.getElementById('menuBtn').addEventListener('click', () => {
+  document.getElementById('sidebar').classList.toggle('active');
+});
+
+/* ===== UTILIDADES ===== */
+function formatCOP(n) { return '$ ' + Math.round(n).toLocaleString('es-CO'); }
+
+function nombreProveedor(id) {
+  const p = proveedores.find(p => p.id === id);
+  return p ? p.nombre : '';
+}
+
+function estadoStock(ins) {
+  if (!ins.stockMin || ins.stockMin === 0) return 'ok';
+  const ratio = ins.cantidad / ins.stockMin;
+  if (ratio <= 1) return 'bajo';
+  if (ratio <= 2) return 'medio';
+  return 'ok';
+}
+
+function badgeStock(ins) {
+  const est = estadoStock(ins);
+  if (est === 'bajo') return `<span class="stock-bajo"><i class="fas fa-circle-exclamation"></i> Stock bajo</span>`;
+  if (est === 'medio') return `<span class="stock-medio"><i class="fas fa-triangle-exclamation"></i> Stock medio</span>`;
+  return `<span class="stock-ok"><i class="fas fa-circle-check"></i> Suficiente</span>`;
+}
+
+function toast(msg, tipo = 'ok') {
+  const el = document.getElementById('toast');
+  const ic = el.querySelector('i');
+  document.getElementById('toastMensaje').textContent = msg;
+  el.classList.toggle('toast-error', tipo === 'error');
+  ic.className = tipo === 'error' ? 'fas fa-circle-xmark' : 'fas fa-check-circle';
+  el.classList.add('visible');
+  setTimeout(() => el.classList.remove('visible'), 3200);
+}
+
+/* ===== RESUMEN ===== */
+function renderResumen() {
+  const totalInsumos = insumos.length;
+  const bajos = insumos.filter(i => estadoStock(i) === 'bajo').length;
+  const valorTotal = insumos.reduce((s, i) => s + i.cantidad * i.precio, 0);
+  const proveedoresActivos = new Set(insumos.map(i => i.proveedorId).filter(Boolean)).size;
+  document.getElementById('tarjetasResumen').innerHTML = `
+    <div class="tarjeta-res tarjeta-verde">
+      <div class="tarjeta-icono"><i class="fas fa-boxes-stacked"></i></div>
+      <div class="tarjeta-info"><div class="tarjeta-valor">${totalInsumos}</div><div class="tarjeta-label">Insumos registrados</div></div>
+    </div>
+    <div class="tarjeta-res tarjeta-rojo">
+      <div class="tarjeta-icono"><i class="fas fa-triangle-exclamation"></i></div>
+      <div class="tarjeta-info"><div class="tarjeta-valor">${bajos}</div><div class="tarjeta-label">Con stock bajo</div></div>
+    </div>
+    <div class="tarjeta-res tarjeta-amarillo">
+      <div class="tarjeta-icono"><i class="fas fa-dollar-sign"></i></div>
+      <div class="tarjeta-info"><div class="tarjeta-valor">${formatCOP(valorTotal)}</div><div class="tarjeta-label">Valor inventario total</div></div>
+    </div>
+    <div class="tarjeta-res tarjeta-azul">
+      <div class="tarjeta-icono"><i class="fas fa-truck"></i></div>
+      <div class="tarjeta-info"><div class="tarjeta-valor">${proveedoresActivos}</div><div class="tarjeta-label">Proveedores activos</div></div>
+    </div>
+  `;
+}
+
+/* ===== FILTRADO ===== */
+function filtrados() {
+  const buscar = document.getElementById('campoBuscar').value.toLowerCase();
+  const cat = document.getElementById('filtroCategoria').value;
+  const stock = document.getElementById('filtroStock').value;
+  return insumos.filter(i => {
+    if (buscar && !i.nombre.toLowerCase().includes(buscar)) return false;
+    if (cat && i.categoria !== cat) return false;
+    if (stock && estadoStock(i) !== stock) return false;
+    return true;
+  });
+}
+
+/* ===== RENDER TABLA INSUMOS ===== */
+function renderTabla() {
+  const lista = filtrados();
+  const total = lista.length;
+  const totalPags = Math.max(1, Math.ceil(total / POR_PAGINA));
+  if (paginaActual > totalPags) paginaActual = totalPags;
+  const slice = lista.slice((paginaActual - 1) * POR_PAGINA, paginaActual * POR_PAGINA);
+
+  const body = document.getElementById('tablaBody');
+  const vacio = document.getElementById('estadoVacio');
+  body.innerHTML = '';
+
+  if (!slice.length) {
+    vacio.style.display = 'flex';
+    document.getElementById('paginacion').style.display = 'none';
+    return;
+  }
+  vacio.style.display = 'none';
+  document.getElementById('paginacion').style.display = 'flex';
+
+  slice.forEach(ins => {
+    const tr = document.createElement('tr');
+    const catColorMap = {
+      'Materia prima':{bg:'#e8f5e9',fg:'#1b6d2a'},
+      'Insumo químico':{bg:'#fde8e8',fg:'#9a1e1e'},
+      'Embalaje':{bg:'#e3f2fd',fg:'#1d4ed8'},
+      'Herramienta':{bg:'#fff8e1',fg:'#9a6b00'},
+      'Otro':{bg:'#f3f4f6',fg:'#6d7a68'}
+    };
+    const catColor = catColorMap[ins.categoria] || catColorMap['Otro'];
+    const provNombre = nombreProveedor(ins.proveedorId);
+
+    tr.innerHTML = `
+      <td><div class="ins-nombre-cell"><div class="avatar-ins"><i class="fas fa-box"></i></div>${ins.nombre}</div></td>
+      <td><span style="padding:4px 10px;background:${catColor.bg};color:${catColor.fg};border-radius:20px;font-size:11px;font-weight:bold;">${ins.categoria}</span></td>
+      <td><span class="${estadoStock(ins) === 'bajo' ? 'celda-stock-bajo' : 'celda-cantidad'}">${ins.cantidad.toLocaleString('es-CO')} ${ins.unidad}</span></td>
+      <td><span class="badge-unidad">${ins.unidad}</span></td>
+      <td class="celda-valor">${formatCOP(ins.precio)}</td>
+      <td>${provNombre ? `<span class="badge-proveedor">${provNombre}</span>` : '<span style="color:#aaa;font-size:12px;">—</span>'}</td>
+      <td>${badgeStock(ins)}</td>
+      <td><div class="acciones-fila">
+        <button class="btn-icon btn-editar" onclick="abrirEditar(${ins.id})" title="Editar"><i class="fas fa-pen"></i></button>
+        <button class="btn-icon btn-eliminar" onclick="pedirEliminar(${ins.id})" title="Eliminar"><i class="fas fa-trash"></i></button>
+      </div></td>
+    `;
+    body.appendChild(tr);
+  });
+
+  // Paginación
+  document.getElementById('paginacionInfo').textContent =
+    `Mostrando ${(paginaActual-1)*POR_PAGINA+1}–${Math.min(paginaActual*POR_PAGINA, total)} de ${total} insumos`;
+
+  const btns = document.getElementById('paginacionBtns');
+  btns.innerHTML = '';
+  const prev = document.createElement('button');
+  prev.className = 'pag-btn'; prev.textContent = '‹ Anterior';
+  prev.disabled = paginaActual === 1;
+  prev.onclick = () => { paginaActual--; renderTabla(); };
+  btns.appendChild(prev);
+  for (let p = 1; p <= totalPags; p++) {
+    const b = document.createElement('button');
+    b.className = 'pag-btn' + (p === paginaActual ? ' activo' : '');
+    b.textContent = p;
+    b.onclick = () => { paginaActual = p; renderTabla(); };
+    btns.appendChild(b);
+  }
+  const next = document.createElement('button');
+  next.className = 'pag-btn'; next.textContent = 'Siguiente ›';
+  next.disabled = paginaActual === totalPags;
+  next.onclick = () => { paginaActual++; renderTabla(); };
+  btns.appendChild(next);
+}
+
+/* ===== RENDER TABLA PROVEEDORES ===== */
+function renderTablaProveedores() {
+  const body = document.getElementById('tablaProveedoresBody');
+  const vacio = document.getElementById('estadoVacioProveedores');
+  body.innerHTML = '';
+
+  if (!proveedores.length) {
+    vacio.style.display = 'flex';
+    return;
+  }
+  vacio.style.display = 'none';
+
+  proveedores.forEach(p => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><div class="ins-nombre-cell"><div class="avatar-ins"><i class="fas fa-truck"></i></div>${p.nombre}</div></td>
+      <td>${p.correo ? p.correo : '<span style="color:#aaa;font-size:12px;">—</span>'}</td>
+      <td>${p.telefono ? p.telefono : '<span style="color:#aaa;font-size:12px;">—</span>'}</td>
+      <td>${p.descripcion ? p.descripcion : '<span style="color:#aaa;font-size:12px;">—</span>'}</td>
+      <td><div class="acciones-fila">
+        <button class="btn-icon btn-editar" onclick="abrirEditarProveedor(${p.id})" title="Editar"><i class="fas fa-pen"></i></button>
+        <button class="btn-icon btn-eliminar" onclick="pedirEliminarProveedor(${p.id})" title="Eliminar"><i class="fas fa-trash"></i></button>
+      </div></td>
+    `;
+    body.appendChild(tr);
+  });
+}
+
+/* ===== SELECT DE PROVEEDOR DENTRO DEL MODAL DE INSUMO ===== */
+function actualizarSelectProveedores(seleccionadoId) {
+  const select = document.getElementById('campoProveedor');
+  select.innerHTML = '<option value="">Sin proveedor</option>';
+  proveedores.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p.id;
+    opt.textContent = p.nombre;
+    select.appendChild(opt);
+  });
+  select.value = seleccionadoId || '';
+}
+
+function renderTodo() {
+  renderResumen();
+  renderTabla();
+  renderTablaProveedores();
+}
+
+['campoBuscar','filtroCategoria','filtroStock'].forEach(id => {
+  document.getElementById(id).addEventListener('input', () => { paginaActual = 1; renderTabla(); });
+  document.getElementById(id).addEventListener('change', () => { paginaActual = 1; renderTabla(); });
+});
+
+/* ===== MODAL NUEVO / EDITAR INSUMO ===== */
+const modalInsumo = document.getElementById('modalInsumo');
+
+function abrirModalNuevo() {
+  document.getElementById('modalTitulo').innerHTML = '<i class="fas fa-plus"></i> Nuevo insumo';
+  document.getElementById('insumoId').value = '';
+  ['campoNombre','campoCantidad','campoPrecio','campoStockMin'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('campoCategoria').value = 'Materia prima';
+  document.getElementById('campoUnidad').value = 'unidad';
+  actualizarSelectProveedores('');
+  modalInsumo.classList.add('activo');
+}
+
+function abrirEditar(id) {
+  const ins = insumos.find(i => i.id === id);
+  if (!ins) return;
+  document.getElementById('modalTitulo').innerHTML = '<i class="fas fa-pen"></i> Editar insumo';
+  document.getElementById('insumoId').value = ins.id;
+  document.getElementById('campoNombre').value = ins.nombre;
+  document.getElementById('campoCategoria').value = ins.categoria;
+  document.getElementById('campoCantidad').value = ins.cantidad;
+  document.getElementById('campoUnidad').value = ins.unidad;
+  document.getElementById('campoPrecio').value = ins.precio;
+  actualizarSelectProveedores(ins.proveedorId);
+  document.getElementById('campoStockMin').value = ins.stockMin || '';
+  modalInsumo.classList.add('activo');
+}
+
+function cerrarModalInsumo() { modalInsumo.classList.remove('activo'); }
+
+document.getElementById('btnNuevoInsumo').addEventListener('click', abrirModalNuevo);
+document.getElementById('btnCerrarInsumo').addEventListener('click', cerrarModalInsumo);
+document.getElementById('btnCancelarInsumo').addEventListener('click', cerrarModalInsumo);
+modalInsumo.addEventListener('click', e => { if (e.target === modalInsumo) cerrarModalInsumo(); });
+
+document.getElementById('btnGuardarInsumo').addEventListener('click', () => {
+  const id = document.getElementById('insumoId').value;
+  const nombre = document.getElementById('campoNombre').value.trim();
+  const categoria = document.getElementById('campoCategoria').value;
+  const cantidad = parseFloat(document.getElementById('campoCantidad').value);
+  const unidad = document.getElementById('campoUnidad').value;
+  const precio = parseFloat(document.getElementById('campoPrecio').value);
+  const proveedorIdRaw = document.getElementById('campoProveedor').value;
+  const proveedorId = proveedorIdRaw ? parseInt(proveedorIdRaw) : null;
+  const stockMin = parseFloat(document.getElementById('campoStockMin').value) || 0;
+
+  if (!nombre) { toast('El nombre es obligatorio.', 'error'); return; }
+  if (isNaN(cantidad) || cantidad < 0) { toast('Ingresa una cantidad válida.', 'error'); return; }
+  if (isNaN(precio) || precio < 0) { toast('Ingresa un precio unitario válido.', 'error'); return; }
+
+  if (id) {
+    const ins = insumos.find(i => i.id === parseInt(id));
+    Object.assign(ins, { nombre, categoria, cantidad, unidad, precio, proveedorId, stockMin });
+    toast(`Insumo "${nombre}" actualizado correctamente.`);
+  } else {
+    const nuevoId = insumos.length ? Math.max(...insumos.map(i => i.id)) + 1 : 1;
+    insumos.push({ id: nuevoId, nombre, categoria, cantidad, unidad, precio, proveedorId, stockMin });
+    insumosEnUso[nuevoId] = [];
+    toast(`Insumo "${nombre}" registrado correctamente.`);
+  }
+  cerrarModalInsumo();
+  renderTodo();
+});
+
+/* ===== MODAL ELIMINAR INSUMO (HU-03: advertencia si está en uso) ===== */
+const modalEliminar = document.getElementById('modalEliminar');
+
+function pedirEliminar(id) {
+  const ins = insumos.find(i => i.id === id);
+  if (!ins) return;
+  idEliminar = id;
+  document.getElementById('nombreInsumoEliminar').textContent = `"${ins.nombre}"`;
+  const enUso = insumosEnUso[id] || [];
+  const adv = document.getElementById('advertenciaEnUso');
+  if (enUso.length) {
+    document.getElementById('textoEnUso').textContent =
+      `Este insumo está siendo utilizado en ${enUso.length} producto(s): ${enUso.join(', ')}. Eliminarlo puede afectar el cálculo de costos.`;
+    adv.style.display = 'flex';
+  } else {
+    adv.style.display = 'none';
+  }
+  modalEliminar.classList.add('activo');
+}
+
+function cerrarModalEliminar() { modalEliminar.classList.remove('activo'); idEliminar = null; }
+
+document.getElementById('btnCerrarEliminar').addEventListener('click', cerrarModalEliminar);
+document.getElementById('btnCancelarEliminar').addEventListener('click', cerrarModalEliminar);
+modalEliminar.addEventListener('click', e => { if (e.target === modalEliminar) cerrarModalEliminar(); });
+
+document.getElementById('btnConfirmarEliminar').addEventListener('click', () => {
+  if (idEliminar === null) return;
+  const ins = insumos.find(i => i.id === idEliminar);
+  const nombre = ins ? ins.nombre : '';
+  insumos = insumos.filter(i => i.id !== idEliminar);
+  delete insumosEnUso[idEliminar];
+  cerrarModalEliminar();
+  toast(`Insumo "${nombre}" eliminado.`);
+  renderTodo();
+});
+
+/* ===== SECCIÓN PROVEEDORES: ir a la sección al hacer click en el botón ===== */
+document.getElementById('btnVerProveedores').addEventListener('click', () => {
+  document.getElementById('seccionProveedores').scrollIntoView({ behavior: 'smooth', block: 'start' });
+});
+
+/* ===== MODAL NUEVO / EDITAR PROVEEDOR ===== */
+const modalProveedor = document.getElementById('modalProveedor');
+
+function abrirModalNuevoProveedor() {
+  document.getElementById('modalTituloProveedor').innerHTML = '<i class="fas fa-plus"></i> Nuevo proveedor';
+  document.getElementById('proveedorId').value = '';
+  ['campoProvNombre','campoProvCorreo','campoProvTelefono','campoProvDescripcion'].forEach(id => document.getElementById(id).value = '');
+  modalProveedor.classList.add('activo');
+}
+
+function abrirEditarProveedor(id) {
+  const p = proveedores.find(p => p.id === id);
+  if (!p) return;
+  document.getElementById('modalTituloProveedor').innerHTML = '<i class="fas fa-pen"></i> Editar proveedor';
+  document.getElementById('proveedorId').value = p.id;
+  document.getElementById('campoProvNombre').value = p.nombre;
+  document.getElementById('campoProvCorreo').value = p.correo || '';
+  document.getElementById('campoProvTelefono').value = p.telefono || '';
+  document.getElementById('campoProvDescripcion').value = p.descripcion || '';
+  modalProveedor.classList.add('activo');
+}
+
+function cerrarModalProveedor() { modalProveedor.classList.remove('activo'); }
+
+document.getElementById('btnNuevoProveedor').addEventListener('click', abrirModalNuevoProveedor);
+document.getElementById('btnCerrarProveedor').addEventListener('click', cerrarModalProveedor);
+document.getElementById('btnCancelarProveedor').addEventListener('click', cerrarModalProveedor);
+modalProveedor.addEventListener('click', e => { if (e.target === modalProveedor) cerrarModalProveedor(); });
+
+document.getElementById('btnGuardarProveedor').addEventListener('click', () => {
+  const id = document.getElementById('proveedorId').value;
+  const nombre = document.getElementById('campoProvNombre').value.trim();
+  const correo = document.getElementById('campoProvCorreo').value.trim();
+  const telefono = document.getElementById('campoProvTelefono').value.trim();
+  const descripcion = document.getElementById('campoProvDescripcion').value.trim();
+
+  if (!nombre) { toast('El nombre del proveedor es obligatorio.', 'error'); return; }
+  if (!correo) { toast('El correo es obligatorio.', 'error'); return; }
+  if (!telefono) { toast('El teléfono / contacto es obligatorio.', 'error'); return; }
+
+  const correoValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo);
+  if (!correoValido) { toast('Ingresa un correo válido.', 'error'); return; }
+
+  if (id) {
+    const p = proveedores.find(p => p.id === parseInt(id));
+    Object.assign(p, { nombre, correo, telefono, descripcion });
+    toast(`Proveedor "${nombre}" actualizado correctamente.`);
+  } else {
+    const nuevoId = proveedores.length ? Math.max(...proveedores.map(p => p.id)) + 1 : 1;
+    proveedores.push({ id: nuevoId, nombre, correo, telefono, descripcion });
+    toast(`Proveedor "${nombre}" registrado correctamente.`);
+  }
+  cerrarModalProveedor();
+  renderTablaProveedores();
+  renderResumen();
+});
+
+/* ===== MODAL ELIMINAR PROVEEDOR (con advertencia si está en uso por insumos) ===== */
+const modalEliminarProveedor = document.getElementById('modalEliminarProveedor');
+
+function pedirEliminarProveedor(id) {
+  const p = proveedores.find(p => p.id === id);
+  if (!p) return;
+  idEliminarProveedor = id;
+  document.getElementById('nombreProveedorEliminar').textContent = `"${p.nombre}"`;
+  const enUso = insumos.filter(i => i.proveedorId === id).map(i => i.nombre);
+  const adv = document.getElementById('advertenciaProveedorEnUso');
+  if (enUso.length) {
+    document.getElementById('textoProveedorEnUso').textContent =
+      `Este proveedor está asociado a ${enUso.length} insumo(s): ${enUso.join(', ')}. Si lo eliminas, esos insumos quedarán sin proveedor asignado.`;
+    adv.style.display = 'flex';
+  } else {
+    adv.style.display = 'none';
+  }
+  modalEliminarProveedor.classList.add('activo');
+}
+
+function cerrarModalEliminarProveedor() {
+  modalEliminarProveedor.classList.remove('activo');
+  idEliminarProveedor = null;
+}
+
+document.getElementById('btnCerrarEliminarProveedor').addEventListener('click', cerrarModalEliminarProveedor);
+document.getElementById('btnCancelarEliminarProveedor').addEventListener('click', cerrarModalEliminarProveedor);
+modalEliminarProveedor.addEventListener('click', e => { if (e.target === modalEliminarProveedor) cerrarModalEliminarProveedor(); });
+
+document.getElementById('btnConfirmarEliminarProveedor').addEventListener('click', () => {
+  if (idEliminarProveedor === null) return;
+  const p = proveedores.find(p => p.id === idEliminarProveedor);
+  const nombre = p ? p.nombre : '';
+  proveedores = proveedores.filter(p => p.id !== idEliminarProveedor);
+  // Insumos que tenían este proveedor quedan sin proveedor
+  insumos.forEach(i => { if (i.proveedorId === idEliminarProveedor) i.proveedorId = null; });
+  cerrarModalEliminarProveedor();
+  toast(`Proveedor "${nombre}" eliminado.`);
+  renderTodo();
+});
+
+/* ===== INIT ===== */
+renderTodo();
+</script>
+</body>
+</html>

@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestión de Productos — CostPro</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="./src/productos.css">
+</head>
+<body>
+
+<!-- NAVBAR -->
+<header class="navbar">
+  <button id="menuBtn" class="menu-btn">
+    <i class="fa-solid fa-bars"></i>
+    MENÚ
+  </button>
+  <div class="admin-user">
+    <span>Bienvenido Administrador</span>
+    <i class="fa-regular fa-circle-user"></i>
+  </div>
+</header>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+   <ul>
+    <li><a href="panel_principal.html"><i class="fas fa-home"></i> Inicio</a></li>
+    <li><a href="insumos.html"><i class="fas fa-box"></i> Insumos</a></li>
+    <li><a href="productos.html"><i class="fas fa-cube"></i> Productos</a></li>
+    <li><a href="costos.html"><i class="fas fa-dollar-sign"></i> Costos</a></li>
+    <li><a href="equilibrio.html"><i class="fas fa-scale-balanced"></i> Punto de equilibrio</a></li>
+    <li><a href="usuarios.html"><i class="fas fa-users"></i> Usuarios y Roles</a></li>
+    <li><a href="analisis.html"><i class="fas fa-chart-pie"></i> Análisis</a></li>
+    <li><a href="reportes.html" class="activo"><i class="fas fa-file-alt"></i> Reportes</a></li>
+    <li><a href="auditoria.html"><i class="fas fa-clipboard-list"></i> Auditoría</a></li>
+    <li><a href="configuracion.html"><i class="fas fa-cog"></i> Configuración</a></li>
+    <li><a href="login.html"><i class="fas fa-sign-out-alt"></i> Cerrar sesión</a></li>
+  </ul>
+</aside>
+
+<main>
+  <div class="header">
+    <h1><i class="fas fa-cube"></i> Gestión de Productos</h1>
+    <p>Registra los productos que fabricas, sus insumos y el costo de mano de obra</p>
+  </div>
+
+  <!-- HU-05 / HU-06: LISTA DE PRODUCTOS -->
+  <section class="seccion">
+    <div class="seccion-head">
+      <div>
+        <h2><i class="fas fa-list"></i> Productos registrados</h2>
+        <p>Consulta, edita o elimina los productos del sistema</p>
+      </div>
+      <button class="btn-primario" id="btnNuevoProducto">
+        <i class="fas fa-plus"></i> Nuevo producto
+      </button>
+    </div>
+
+    <!-- Buscador -->
+    <div class="buscador-wrap">
+      <i class="fas fa-search buscador-icono"></i>
+      <input type="text" id="campoBuscar" class="buscador-input" placeholder="Buscar producto por nombre…">
+    </div>
+
+    <div class="tabla-wrap">
+      <table class="tabla-productos">
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th>Unidad</th>
+            <th>Insumos</th>
+            <th>Mano de obra / u.</th>
+            <th>Costo total estimado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tablaProductosBody">
+          <!-- Filas generadas dinámicamente por JS -->
+        </tbody>
+      </table>
+    </div>
+
+    <div class="tabla-vacia" id="tablaVacia" style="display:none;">
+      <i class="fas fa-box-open"></i>
+      <p>No hay productos registrados aún.</p>
+      <span>Haz clic en <strong>Nuevo producto</strong> para comenzar.</span>
+    </div>
+  </section>
+</main>
+
+<!-- MODAL: NUEVO / EDITAR PRODUCTO (HU-05) -->
+<div class="modal-overlay" id="modalProducto">
+  <div class="modal-box modal-grande">
+    <div class="modal-head">
+      <h2 id="modalTitulo"><i class="fas fa-plus"></i> Nuevo producto</h2>
+      <button class="modal-cerrar" id="btnCerrarModal"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="productoId">
+
+      <!-- Datos básicos -->
+      <div class="form-bloque">
+        <div class="form-bloque-titulo"><i class="fas fa-info-circle"></i> Información general</div>
+        <div class="campo">
+          <label>Nombre del producto <span class="req">*</span></label>
+          <input type="text" id="campoNombre" placeholder="Ej: Silla ergonómica modelo A">
+        </div>
+        <div class="campo">
+          <label>Descripción</label>
+          <textarea id="campoDescripcion" rows="3" placeholder="Describe brevemente el producto…"></textarea>
+        </div>
+        <div class="campo campo-mitad">
+          <label>Unidad de medida <span class="req">*</span></label>
+          <select id="campoUnidad">
+            <option value="">— Seleccionar —</option>
+            <option value="unidad">Unidad</option>
+            <option value="kg">Kilogramo (kg)</option>
+            <option value="g">Gramo (g)</option>
+            <option value="litro">Litro (L)</option>
+            <option value="ml">Mililitro (mL)</option>
+            <option value="metro">Metro (m)</option>
+            <option value="caja">Caja</option>
+            <option value="docena">Docena</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Mano de obra -->
+      <div class="form-bloque">
+        <div class="form-bloque-titulo"><i class="fas fa-hard-hat"></i> Mano de obra directa</div>
+        <div class="campo campo-mitad">
+          <label>Costo de mano de obra por unidad <span class="req">*</span></label>
+          <div class="input-prefix-wrap">
+            <span class="input-prefix">$</span>
+            <input type="number" id="campoManoObra" min="0" step="0.01" placeholder="0.00">
+          </div>
+        </div>
+      </div>
+
+      <!-- Insumos -->
+      <div class="form-bloque">
+        <div class="form-bloque-titulo-fila">
+          <div><i class="fas fa-box"></i> Insumos del producto</div>
+          <button type="button" class="btn-agregar-fila" id="btnAgregarInsumo">
+            <i class="fas fa-plus"></i> Agregar insumo
+          </button>
+        </div>
+
+        <div class="insumos-cabecera">
+          <span>Insumo</span>
+          <span>Cantidad</span>
+          <span>Unidad</span>
+          <span></span>
+        </div>
+
+        <div id="listaInsumos">
+          <!-- Filas de insumos generadas dinámicamente -->
+        </div>
+
+        <div id="insumos-vacio" class="insumos-vacio">
+          <i class="fas fa-cubes"></i> Aún no has agregado insumos. Haz clic en <strong>Agregar insumo</strong>.
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-secundario" id="btnCancelarModal">Cancelar</button>
+      <button class="btn-primario" id="btnGuardarProducto"><i class="fas fa-check"></i> Guardar producto</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: CONFIRMAR ELIMINACIÓN (HU-06) -->
+<div class="modal-overlay" id="modalEliminar">
+  <div class="modal-box modal-chico">
+    <div class="modal-head modal-head-danger">
+      <h2><i class="fas fa-triangle-exclamation"></i> Eliminar producto</h2>
+      <button class="modal-cerrar" id="btnCerrarEliminar"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="alerta-danger">
+        <i class="fas fa-circle-exclamation"></i>
+        <div>
+          <p>Estás a punto de eliminar <strong id="nombreEliminar"></strong>.</p>
+          <p class="alerta-sub">Esta acción no se puede deshacer. Se perderán todos los insumos y costos asociados al producto.</p>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secundario" id="btnCancelarEliminar">Cancelar</button>
+      <button class="btn-danger" id="btnConfirmarEliminar"><i class="fas fa-trash"></i> Sí, eliminar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===== DATOS INICIALES ===== */
+const insumosDisponibles = [
+  { nombre: "Madera pino", unidad: "m" },
+  { nombre: "Tornillos acero", unidad: "unidad" },
+  { nombre: "Pintura base", unidad: "litro" },
+  { nombre: "Tela tapizado", unidad: "metro" },
+  { nombre: "Espuma relleno", unidad: "kg" },
+  { nombre: "Barniz acabado", unidad: "litro" }
+];
+
+let productos = [
+  {
+    id: 1,
+    nombre: "Silla ergonómica mod. A",
+    descripcion: "Silla de oficina con soporte lumbar ajustable.",
+    unidad: "unidad",
+    manoObra: 25000,
+    insumos: [
+      { nombre: "Madera pino", cantidad: 2, unidad: "m" },
+      { nombre: "Tela tapizado", cantidad: 1.5, unidad: "metro" },
+      { nombre: "Tornillos acero", cantidad: 12, unidad: "unidad" }
+    ]
+  },
+  {
+    id: 2,
+    nombre: "Mesa de trabajo",
+    descripcion: "Mesa industrial para taller o bodega.",
+    unidad: "unidad",
+    manoObra: 40000,
+    insumos: [
+      { nombre: "Madera pino", cantidad: 5, unidad: "m" },
+      { nombre: "Tornillos acero", cantidad: 20, unidad: "unidad" },
+      { nombre: "Barniz acabado", cantidad: 0.5, unidad: "litro" }
+    ]
+  }
+];
+
+/* ===== SIDEBAR ===== */
+document.getElementById('menuBtn').addEventListener('click', () => {
+  document.getElementById('sidebar').classList.toggle('active');
+});
+
+/* ===== UTILIDADES ===== */
+function formatCOP(n) {
+  return '$ ' + Number(n).toLocaleString('es-CO', { minimumFractionDigits: 0 });
+}
+
+function costoTotal(prod) {
+  // Aquí se sumarían los costos de insumos si se tuviera precio por insumo
+  // Por ahora retorna solo la mano de obra como referencia
+  return prod.manoObra;
+}
+
+function iconoUnidad(u) {
+  const iconos = { unidad: 'fa-cube', kg: 'fa-weight-hanging', g: 'fa-weight-hanging', litro: 'fa-flask', ml: 'fa-flask', metro: 'fa-ruler', caja: 'fa-box', docena: 'fa-layer-group' };
+  return iconos[u] || 'fa-tag';
+}
+
+/* ===== RENDER TABLA ===== */
+function renderProductos(filtro = "") {
+  const body = document.getElementById('tablaProductosBody');
+  const vacio = document.getElementById('tablaVacia');
+  body.innerHTML = "";
+
+  const lista = filtro
+    ? productos.filter(p => p.nombre.toLowerCase().includes(filtro.toLowerCase()))
+    : productos;
+
+  if (lista.length === 0) {
+    vacio.style.display = "flex";
+  } else {
+    vacio.style.display = "none";
+  }
+
+  lista.forEach(p => {
+    const tr = document.createElement('tr');
+    const insumosBadge = p.insumos.length > 0
+      ? `<span class="badge-insumos">${p.insumos.length} insumo${p.insumos.length > 1 ? 's' : ''}</span>`
+      : `<span class="badge-sin-insumos">Sin insumos</span>`;
+
+    tr.innerHTML = `
+      <td>
+        <div class="producto-nombre">
+          <div class="avatar-prod"><i class="fas fa-cube"></i></div>
+          <div>
+            <div class="prod-title">${p.nombre}</div>
+            ${p.descripcion ? `<div class="prod-desc">${p.descripcion}</div>` : ''}
+          </div>
+        </div>
+      </td>
+      <td><span class="badge-unidad"><i class="fas ${iconoUnidad(p.unidad)}"></i> ${p.unidad}</span></td>
+      <td>${insumosBadge}</td>
+      <td class="celda-mano">${formatCOP(p.manoObra)}</td>
+      <td class="celda-costo">${formatCOP(costoTotal(p))}</td>
+      <td>
+        <div class="acciones-fila">
+          <button class="btn-icon btn-editar" title="Editar" onclick="editarProducto(${p.id})"><i class="fas fa-pen"></i></button>
+          <button class="btn-icon btn-eliminar" title="Eliminar" onclick="pedirEliminar(${p.id})"><i class="fas fa-trash"></i></button>
+        </div>
+      </td>
+    `;
+    body.appendChild(tr);
+  });
+}
+
+/* ===== BUSCADOR ===== */
+document.getElementById('campoBuscar').addEventListener('input', (e) => {
+  renderProductos(e.target.value);
+});
+
+/* ===== MODAL PRODUCTO ===== */
+const modal = document.getElementById('modalProducto');
+
+function abrirModal() { modal.classList.add('activo'); }
+function cerrarModal() {
+  modal.classList.remove('activo');
+  limpiarFormulario();
+}
+
+document.getElementById('btnNuevoProducto').addEventListener('click', () => {
+  document.getElementById('modalTitulo').innerHTML = '<i class="fas fa-plus"></i> Nuevo producto';
+  limpiarFormulario();
+  abrirModal();
+});
+document.getElementById('btnCerrarModal').addEventListener('click', cerrarModal);
+document.getElementById('btnCancelarModal').addEventListener('click', cerrarModal);
+modal.addEventListener('click', (e) => { if (e.target === modal) cerrarModal(); });
+
+function limpiarFormulario() {
+  document.getElementById('productoId').value = "";
+  document.getElementById('campoNombre').value = "";
+  document.getElementById('campoDescripcion').value = "";
+  document.getElementById('campoUnidad').value = "";
+  document.getElementById('campoManoObra').value = "";
+  document.getElementById('listaInsumos').innerHTML = "";
+  actualizarEstadoInsumosVacio();
+}
+
+/* ===== INSUMOS DINÁMICOS ===== */
+let contadorFila = 0;
+
+function actualizarEstadoInsumosVacio() {
+  const lista = document.getElementById('listaInsumos');
+  const vacio = document.getElementById('insumos-vacio');
+  vacio.style.display = lista.children.length === 0 ? 'flex' : 'none';
+}
+
+function agregarFilaInsumo(nombre = "", cantidad = "", unidad = "") {
+  const id = ++contadorFila;
+  const lista = document.getElementById('listaInsumos');
+
+  const div = document.createElement('div');
+  div.className = 'fila-insumo';
+  div.dataset.filaId = id;
+
+  const opcionesInsumos = insumosDisponibles.map(ins =>
+    `<option value="${ins.nombre}" data-unidad="${ins.unidad}" ${ins.nombre === nombre ? 'selected' : ''}>${ins.nombre}</option>`
+  ).join('');
+
+  div.innerHTML = `
+    <select class="campo-insumo-select" onchange="autoUnidad(this, ${id})">
+      <option value="">— Seleccionar insumo —</option>
+      ${opcionesInsumos}
+    </select>
+    <input type="number" class="campo-insumo-cant" min="0" step="0.01" placeholder="0" value="${cantidad}">
+    <input type="text" class="campo-insumo-unidad" placeholder="Unidad" value="${unidad}" readonly>
+    <button type="button" class="btn-quitar-fila" onclick="quitarFilaInsumo(${id})" title="Quitar insumo">
+      <i class="fas fa-xmark"></i>
+    </button>
+  `;
+
+  lista.appendChild(div);
+  actualizarEstadoInsumosVacio();
+}
+
+function autoUnidad(select, id) {
+  const opt = select.selectedOptions[0];
+  const unidad = opt ? (opt.dataset.unidad || "") : "";
+  const fila = document.querySelector(`.fila-insumo[data-fila-id="${id}"]`);
+  if (fila) fila.querySelector('.campo-insumo-unidad').value = unidad;
+}
+
+function quitarFilaInsumo(id) {
+  const fila = document.querySelector(`.fila-insumo[data-fila-id="${id}"]`);
+  if (fila) fila.remove();
+  actualizarEstadoInsumosVacio();
+}
+
+document.getElementById('btnAgregarInsumo').addEventListener('click', () => {
+  agregarFilaInsumo();
+});
+
+/* ===== EDITAR PRODUCTO ===== */
+function editarProducto(id) {
+  const p = productos.find(x => x.id === id);
+  if (!p) return;
+
+  document.getElementById('modalTitulo').innerHTML = '<i class="fas fa-pen"></i> Editar producto';
+  document.getElementById('productoId').value = p.id;
+  document.getElementById('campoNombre').value = p.nombre;
+  document.getElementById('campoDescripcion').value = p.descripcion || "";
+  document.getElementById('campoUnidad').value = p.unidad;
+  document.getElementById('campoManoObra').value = p.manoObra;
+
+  document.getElementById('listaInsumos').innerHTML = "";
+  p.insumos.forEach(ins => agregarFilaInsumo(ins.nombre, ins.cantidad, ins.unidad));
+  actualizarEstadoInsumosVacio();
+
+  abrirModal();
+}
+
+/* ===== GUARDAR PRODUCTO ===== */
+document.getElementById('btnGuardarProducto').addEventListener('click', () => {
+  const id = document.getElementById('productoId').value;
+  const nombre = document.getElementById('campoNombre').value.trim();
+  const descripcion = document.getElementById('campoDescripcion').value.trim();
+  const unidad = document.getElementById('campoUnidad').value;
+  const manoObra = parseFloat(document.getElementById('campoManoObra').value);
+
+  if (!nombre) { alert("El nombre del producto es obligatorio."); return; }
+  if (!unidad) { alert("Selecciona una unidad de medida."); return; }
+  if (isNaN(manoObra) || manoObra < 0) { alert("Ingresa un costo de mano de obra válido."); return; }
+
+  // Recolectar insumos
+  const filas = document.querySelectorAll('.fila-insumo');
+  const insumos = [];
+  let insumosValidos = true;
+
+  filas.forEach(fila => {
+    const select = fila.querySelector('.campo-insumo-select');
+    const cantInput = fila.querySelector('.campo-insumo-cant');
+    const unidadInput = fila.querySelector('.campo-insumo-unidad');
+
+    const nombre_ins = select.value;
+    const cantidad = parseFloat(cantInput.value);
+    const unidad_ins = unidadInput.value;
+
+    if (!nombre_ins || isNaN(cantidad) || cantidad <= 0) {
+      insumosValidos = false;
+      return;
+    }
+    insumos.push({ nombre: nombre_ins, cantidad, unidad: unidad_ins });
+  });
+
+  if (!insumosValidos) {
+    alert("Completa correctamente todos los insumos agregados (nombre y cantidad mayor a 0).");
+    return;
+  }
+
+  if (id) {
+    const p = productos.find(x => x.id === parseInt(id));
+    p.nombre = nombre;
+    p.descripcion = descripcion;
+    p.unidad = unidad;
+    p.manoObra = manoObra;
+    p.insumos = insumos;
+  } else {
+    const nuevoId = productos.length ? Math.max(...productos.map(p => p.id)) + 1 : 1;
+    productos.push({ id: nuevoId, nombre, descripcion, unidad, manoObra, insumos });
+  }
+
+  renderProductos(document.getElementById('campoBuscar').value);
+  cerrarModal();
+});
+
+/* ===== MODAL ELIMINAR (HU-06) ===== */
+const modalEliminar = document.getElementById('modalEliminar');
+let idAEliminar = null;
+
+function pedirEliminar(id) {
+  const p = productos.find(x => x.id === id);
+  if (!p) return;
+  idAEliminar = id;
+  document.getElementById('nombreEliminar').textContent = `"${p.nombre}"`;
+  modalEliminar.classList.add('activo');
+}
+
+function cerrarModalEliminar() {
+  modalEliminar.classList.remove('activo');
+  idAEliminar = null;
+}
+
+document.getElementById('btnCerrarEliminar').addEventListener('click', cerrarModalEliminar);
+document.getElementById('btnCancelarEliminar').addEventListener('click', cerrarModalEliminar);
+modalEliminar.addEventListener('click', (e) => { if (e.target === modalEliminar) cerrarModalEliminar(); });
+
+document.getElementById('btnConfirmarEliminar').addEventListener('click', () => {
+  if (idAEliminar !== null) {
+    productos = productos.filter(x => x.id !== idAEliminar);
+    renderProductos(document.getElementById('campoBuscar').value);
+    cerrarModalEliminar();
+  }
+});
+
+/* ===== INICIALIZAR ===== */
+renderProductos();
+</script>
+</body>
+</html>

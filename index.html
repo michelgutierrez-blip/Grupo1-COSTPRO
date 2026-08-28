@@ -20,7 +20,6 @@
     <li><a href="insumos.html"><i class="fas fa-box"></i> Insumos</a></li>
     <li><a href="productos.html"><i class="fas fa-cube"></i> Productos</a></li>
     <li><a href="costos.html"><i class="fas fa-dollar-sign"></i> Costos</a></li>
-    <li><a href="equilibrio.html"><i class="fas fa-scale-balanced"></i> Punto de equilibrio</a></li>
     <li><a href="usuarios.html"><i class="fas fa-users"></i> Usuarios y Roles</a></li>
     <li><a href="analisis.html"><i class="fas fa-chart-pie"></i> Análisis</a></li>
     <li><a href="reportes.html"><i class="fas fa-file-alt"></i> Reportes</a></li>
@@ -48,7 +47,6 @@
     <a href="insumos.html" class="acceso"><div class="acceso-icono ac-verde"><i class="fas fa-plus"></i></div><span>Nuevo insumo</span></a>
     <a href="productos.html" class="acceso"><div class="acceso-icono ac-azul"><i class="fas fa-cube"></i></div><span>Nuevo producto</span></a>
     <a href="costos.html" class="acceso"><div class="acceso-icono ac-amarillo"><i class="fas fa-dollar-sign"></i></div><span>Registrar costo</span></a>
-    <a href="equilibrio.html" class="acceso"><div class="acceso-icono ac-teal"><i class="fas fa-scale-balanced"></i></div><span>P. Equilibrio</span></a>
     <a href="reportes.html" class="acceso"><div class="acceso-icono ac-morado"><i class="fas fa-file-alt"></i></div><span>Ver reportes</span></a>
     <a href="analisis.html" class="acceso"><div class="acceso-icono ac-naranja"><i class="fas fa-chart-pie"></i></div><span>Análisis</span></a>
     <a href="auditoria.html" class="acceso"><div class="acceso-icono ac-rojo"><i class="fas fa-clipboard-list"></i></div><span>Auditoría</span></a>
@@ -104,11 +102,11 @@
 
     <div class="panel">
       <div class="panel-cabeza">
-        <div><div class="panel-titulo"><i class="fas fa-table"></i> Rentabilidad por producto</div><div class="panel-sub">Margen y punto de equilibrio</div></div>
+        <div><div class="panel-titulo"><i class="fas fa-table"></i> Rentabilidad por producto</div><div class="panel-sub">Margen de ganancia</div></div>
       </div>
       <div class="tabla-wrap">
         <table class="t-panel">
-          <thead><tr><th>Producto</th><th>Costo</th><th>Venta</th><th>Margen</th><th>Equilibrio</th></tr></thead>
+          <thead><tr><th>Producto</th><th>Costo</th><th>Venta</th><th>Margen</th></tr></thead>
           <tbody id="tablaRent"></tbody>
         </table>
       </div>
@@ -182,7 +180,7 @@
       </div>
       <div>
         <label style="font-size:12px;font-weight:700;color:#5b6a62;display:block;margin-bottom:6px;">Descripción</label>
-        <input type="text" class="input-texto" id="eventoDesc" placeholder="Ej: Revisar stock de Karité">
+        <input type="text" class="input-texto" id="eventoDesc" placeholder="Ej: Revisar stock de base de glicerina">
       </div>
     </div>
     <div class="modal-footer">
@@ -201,33 +199,33 @@
 <script>
 /* ===== DATOS ===== */
 const productos = [
-  {id:1,nombre:"Jabón Karité",          mp:3200,  mo:1100,  cif:700,  pv:8900,  cf:1800000},
-  {id:2,nombre:"Vela Aromática Lavanda",mp:2100,  mo:900,   cif:500,  pv:6500,  cf:1200000},
-  {id:3,nombre:"Silla Mod. A",          mp:45000, mo:18000, cif:9000, pv:98000, cf:3500000},
-  {id:4,nombre:"Crema Corporal Aloe",   mp:4800,  mo:1600,  cif:900,  pv:13900, cf:1500000},
-  {id:5,nombre:"Cojín Tapizado",        mp:22000, mo:9000,  cif:4000, pv:52000, cf:2200000},
-  {id:6,nombre:"Difusor de Aromas",     mp:6200,  mo:2200,  cif:1100, pv:7500,  cf:900000 },
-  {id:7,nombre:"Banco Auxiliar",        mp:38000, mo:15000, cif:7000, pv:89000, cf:2600000},
+  {id:1,nombre:"Jabón de Lavanda",        mp:3200, mo:1100, cif:700, pv:8900},
+  {id:2,nombre:"Jabón de Avena y Miel",   mp:3600, mo:1200, cif:750, pv:9800},
+  {id:3,nombre:"Jabón de Coco",           mp:3400, mo:1150, cif:700, pv:9300},
+  {id:4,nombre:"Jabón de Aloe Vera",      mp:3000, mo:1050, cif:650, pv:8500},
+  {id:5,nombre:"Jabón de Café",           mp:3900, mo:1300, cif:800, pv:10500},
+  {id:6,nombre:"Jabón de Miel",           mp:3500, mo:1200, cif:720, pv:9500},
+  {id:7,nombre:"Jabón de Karité",         mp:4200, mo:1400, cif:850, pv:11200},
 ];
 
 let insumos = [
-  {id:1,nombre:"Manteca de Karité",  u:"kg",  s:4,  m:10},
-  {id:2,nombre:"Cera de Abeja",      u:"kg",  s:18, m:15},
-  {id:3,nombre:"Aceite de Lavanda",  u:"lt",  s:2,  m:8 },
-  {id:4,nombre:"Madera de Pino",     u:"m²",  s:22, m:20},
-  {id:5,nombre:"Aloe Vera (gel)",    u:"kg",  s:5,  m:12},
-  {id:6,nombre:"Tela para Cojín",    u:"mts", s:30, m:25},
-  {id:7,nombre:"Frascos de Vidrio",  u:"und", s:80, m:100},
-  {id:8,nombre:"Aceite Esencial Mix",u:"lt",  s:3,  m:5 },
+  {id:1,nombre:"Base de glicerina",      u:"kg",  s:4,   m:10},
+  {id:2,nombre:"Aceite de coco",         u:"lt",  s:18,  m:15},
+  {id:3,nombre:"Esencia de lavanda",     u:"ml",  s:80,  m:120},
+  {id:4,nombre:"Avena",                  u:"kg",  s:22,  m:20},
+  {id:5,nombre:"Miel",                   u:"kg",  s:5,   m:12},
+  {id:6,nombre:"Gel de aloe vera",       u:"kg",  s:8,   m:10},
+  {id:7,nombre:"Empaques para jabón",    u:"und", s:80,  m:100},
+  {id:8,nombre:"Moldes para jabón",      u:"und", s:3,   m:5},
 ];
 
 const actividadData = [
-  {ini:"AD",av:"av-azul",  desc:"<span>Administrador</span> actualizó el costo de <span>Silla Mod. A</span>",mod:"Costos",    t:"Hace 12 min"},
-  {ini:"MR",av:"av-rosa",  desc:"<span>María R.</span> agregó insumo <span>Aceite de Palma</span>",           mod:"Insumos",   t:"Hace 38 min"},
-  {ini:"JP",av:"av-verde", desc:"<span>Juan P.</span> exportó reporte de costos en <span>PDF</span>",         mod:"Reportes",  t:"Hace 1 h"},
-  {ini:"AD",av:"av-azul",  desc:"<span>Administrador</span> creó producto <span>Loción Corporal</span>",      mod:"Productos", t:"Hace 2 h"},
-  {ini:"LC",av:"av-morado",desc:"<span>Laura C.</span> configuró umbrales de <span>stock mínimo</span>",      mod:"Insumos",   t:"Ayer 4:30 pm"},
-  {ini:"JP",av:"av-verde", desc:"<span>Juan P.</span> revisó punto de equilibrio de <span>Cojín Tapizado</span>",mod:"Equilibrio",t:"Ayer 2:10 pm"},
+  {ini:"AD",av:"av-azul",  desc:"<span>Administrador</span> actualizó el costo del <span>Jabón de Lavanda</span>",mod:"Costos",    t:"Hace 12 min"},
+  {ini:"MR",av:"av-rosa",  desc:"<span>María R.</span> agregó el insumo <span>Base de glicerina</span>",                    mod:"Insumos",   t:"Hace 38 min"},
+  {ini:"JP",av:"av-verde", desc:"<span>Juan P.</span> exportó un <span>reporte de costos</span> en PDF",                    mod:"Reportes",  t:"Hace 1 h"},
+  {ini:"AD",av:"av-azul",  desc:"<span>Administrador</span> creó el producto <span>Jabón de Café</span>",                   mod:"Productos", t:"Hace 2 h"},
+  {ini:"LC",av:"av-morado",desc:"<span>Laura C.</span> configuró los umbrales de <span>stock mínimo</span>",                mod:"Insumos",   t:"Ayer 4:30 pm"},
+  {ini:"JP",av:"av-verde", desc:"<span>Juan P.</span> revisó los costos del <span>Jabón de Karité</span>",                  mod:"Costos",    t:"Ayer 2:10 pm"},
 ];
 
 let alertasResueltas = new Set();
@@ -240,12 +238,11 @@ const $ = id => document.getElementById(id);
 const cop = v => '$'+Math.round(v).toLocaleString('es-CO');
 
 function calcP(p){
-  const cv=p.mp+p.mo, ct=cv+p.cif, mc=p.pv-cv;
-  const alerta=mc<=0;
-  const peu=alerta?null:Math.ceil(p.cf/mc);
-  const pev=alerta?null:peu*p.pv;
-  const mpct=p.pv>0?(p.pv-ct)/p.pv*100:0;
-  return{...p,cv,ct,mc,alerta,peu,pev,mpct};
+  const cv=p.mp+p.mo;
+  const ct=cv+p.cif;
+  const ganancia=p.pv-ct;
+  const mpct=p.pv>0?(ganancia/p.pv)*100:0;
+  return{...p,cv,ct,ganancia,mpct};
 }
 
 function toast(msg){
@@ -454,7 +451,6 @@ function renderTablaRent(){
       <td style="color:#5b6a62;font-size:12px;">${cop(r.ct)}</td>
       <td style="color:#5b6a62;font-size:12px;">${cop(r.pv)}</td>
       <td class="${r.mpct>=0?'positivo':'negativo'}" style="font-weight:800;">${r.mpct.toFixed(1)}%</td>
-      <td>${r.alerta?`<span class="badge-na"><i class="fas fa-xmark"></i> N/A</span>`:`<span class="badge-eq">${r.peu.toLocaleString('es-CO')} und</span>`}</td>
     </tr>`).join('');
 }
 
@@ -468,9 +464,9 @@ function initCal(){
   const y=calYear, m=calMonth+1;
   eventos=[
     {fecha:`${y}-${String(m).padStart(2,'0')}-05`,tipo:'auditoria',desc:'Auditoría mensual de costos'},
-    {fecha:`${y}-${String(m).padStart(2,'0')}-12`,tipo:'stock',   desc:'Revisión stock Karité y Lavanda'},
-    {fecha:`${y}-${String(m).padStart(2,'0')}-18`,tipo:'costo',   desc:'Actualizar precios de materia prima'},
-    {fecha:`${y}-${String(m).padStart(2,'0')}-25`,tipo:'auditoria',desc:'Reporte trimestral'},
+    {fecha:`${y}-${String(m).padStart(2,'0')}-12`,tipo:'stock',   desc:'Revisión de stock de base de glicerina y lavanda'},
+    {fecha:`${y}-${String(m).padStart(2,'0')}-18`,tipo:'costo',   desc:'Actualizar precios de insumos para la elaboración de jabones'},
+    {fecha:`${y}-${String(m).padStart(2,'0')}-25`,tipo:'auditoria',desc:'Revisar registro de producción de jabones'},
   ];
   renderCal();
 }

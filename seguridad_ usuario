@@ -1,0 +1,101 @@
+
+
+USE costpro;
+
+
+-- 
+DROP PROCEDURE IF EXISTS sp_registrar_usuario;
+
+DELIMITER $$
+CREATE PROCEDURE sp_registrar_usuario(
+    IN p_usuario   VARCHAR(50),
+    IN p_nombre    VARCHAR(50),
+    IN p_apellido  VARCHAR(50),
+    IN p_correo    VARCHAR(100),
+    IN p_password  VARCHAR(255),
+    IN p_rol       VARCHAR(20),
+    IN p_estado    VARCHAR(20)
+)
+BEGIN
+    DECLARE v_salt VARCHAR(36);
+    DECLARE v_hash VARCHAR(64);
+
+    SET v_salt = UUID();
+    SET v_hash = SHA2(CONCAT(v_salt, p_password), 256);
+
+    INSERT INTO USUARIO (usuario, nombre, apellido, correo, contrasena, salt, rol, estado)
+    VALUES (p_usuario, p_nombre, p_apellido, p_correo, v_hash, v_salt, p_rol, p_estado);
+END$$
+DELIMITER ;
+
+-- PASO 3: receta para INICIAR SESIÓN
+DROP PROCEDURE IF EXISTS sp_login_usuario;
+
+DELIMITER $$
+CREATE PROCEDURE sp_login_usuario(
+    IN  p_correo            VARCHAR(100),
+    IN  p_password_intento  VARCHAR(255),
+    OUT p_autenticado       TINYINT,
+    OUT p_id_usuario        INT
+)
+BEGIN
+    DECLARE v_salt VARCHAR(36);
+    DECLARE v_hash_guardado VARCHAR(64);
+    DECLARE v_id INT;
+
+    SELECT id_usuario, contrasena, salt
+      INTO v_id, v_hash_guardado, v_salt
+      FROM USUARIO
+     WHERE correo = p_correo AND estado = 'Activo'
+     LIMIT 1;
+
+    IF v_salt IS NOT NULL AND SHA2(CONCAT(v_salt, p_password_intento), 256) = v_hash_guardado THEN
+        SET p_autenticado = 1;
+        SET p_id_usuario = v_id;
+    ELSE
+        SET p_autenticado = 0;
+        SET p_id_usuario = NULL;
+    END IF;
+END$$
+DELIMITER ;
+
+-- PASO 3B (extra útil): receta para CAMBIAR la clave de un usuario que ya existe
+DROP PROCEDURE IF EXISTS sp_actualizar_password;
+
+DELIMITER $$
+CREATE PROCEDURE sp_actualizar_password(
+    IN p_correo   VARCHAR(100),
+    IN p_password VARCHAR(255)
+)
+BEGIN
+    DECLARE v_salt VARCHAR(36);
+    DECLARE v_hash VARCHAR(64);
+
+    SET v_salt = UUID();
+    SET v_hash = SHA2(CONCAT(v_salt, p_password), 256);
+
+    UPDATE USUARIO
+       SET contrasena = v_hash, salt = v_salt
+     WHERE correo = p_correo;
+END$$
+DELIMITER ;
+
+-- Verifica 
+
+SELECT usuario, correo, contrasena, salt, estado FROM USUARIO;
+
+SELECT usuario, correo, salt FROM USUARIO WHERE salt IS NULL;
+
+ALTER TABLE USUARIO MODIFY salt VARCHAR(36) NOT NULL;
+
+-- Clave correcta
+CALL sp_login_usuario('sofia123@gmail.com', 'Sofia1234', @ok, @id);
+SELECT @ok, @id;   -- esperado: 1, algún id
+
+-- Clave incorrecta
+CALL sp_login_usuario('sofia123@gmail.com', 'clave_mala', @ok, @id);
+SELECT @ok, @id;   -- esperado: 0, NULL
+
+-- Usuario inactivo 
+CALL sp_login_usuario('andres15@gmail.com', 'Andres456', @ok, @id);
+SELECT @ok, @id;   -- esperado: 0, NULL

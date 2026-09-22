@@ -1,507 +1,646 @@
 import { useState } from "react";
-import Swal from "sweetalert2";
-import Navbar from "../components/Navbar";
-import Sidebar from "../components/Sidebar";
-import "../styles/admin.css";
+import NavbarEmpleado from "../../components/empleado/NavbarEmpleado";
+import SidebarEmpleado from "../../components/empleado/SidebarEmpleado";
+import "../../styles/empleado.css";
 
-export default function Reportes() {
-  const [menuAbierto, setMenuAbierto] = useState(false);
-  const [periodo, setPeriodo] = useState("Mensual");
+export default function ReportesEmpleado() {
+  const [filtroProducto, setFiltroProducto] = useState("");
+  const [productoDetalle, setProductoDetalle] = useState(null);
+  const [toastMensaje, setToastMensaje] = useState("");
 
-  const productos = [
+  // =====================================================
+  // DATOS DE PRODUCTOS
+  // =====================================================
+
+  const productosCosto = [
     {
       id: 1,
-      nombre: "Jabón de lavanda",
-      unidades: 85,
-      costo: 7035,
-      precio: 10000,
+      producto: "Jabón de Lavanda",
+      materiaPrima: 3200,
+      manoObra: 1100,
+      cif: 700,
+      precioVenta: 8900,
     },
+
     {
       id: 2,
-      nombre: "Jabón de coco",
-      unidades: 72,
-      costo: 7190,
-      precio: 10000,
+      producto: "Jabón de Miel",
+      materiaPrima: 3500,
+      manoObra: 1200,
+      cif: 750,
+      precioVenta: 9500,
     },
+
     {
       id: 3,
-      nombre: "Jabón de oliva",
-      unidades: 58,
-      costo: 7250,
-      precio: 11000,
+      producto: "Jabón de Avena",
+      materiaPrima: 3000,
+      manoObra: 1050,
+      cif: 650,
+      precioVenta: 8500,
     },
+
     {
       id: 4,
-      nombre: "Jabón de avena y miel",
-      unidades: 94,
-      costo: 6580,
-      precio: 9500,
+      producto: "Jabón de Aloe Vera",
+      materiaPrima: 3800,
+      manoObra: 1300,
+      cif: 800,
+      precioVenta: 10500,
+    },
+
+    {
+      id: 5,
+      producto: "Jabón de Café",
+      materiaPrima: 3400,
+      manoObra: 1150,
+      cif: 700,
+      precioVenta: 9200,
     },
   ];
 
-  const formatCOP = (valor) =>
-    "$ " +
-    Number(valor || 0).toLocaleString("es-CO", {
-      maximumFractionDigits: 0,
-    });
+  // =====================================================
+  // FORMATO DE MONEDA
+  // =====================================================
 
-  const totalUnidades = productos.reduce(
-    (total, producto) => total + producto.unidades,
-    0
-  );
-
-  const ingresos = productos.reduce(
-    (total, producto) =>
-      total + producto.precio * producto.unidades,
-    0
-  );
-
-  const costos = productos.reduce(
-    (total, producto) =>
-      total + producto.costo * producto.unidades,
-    0
-  );
-
-  const utilidad = ingresos - costos;
-
-  const margen =
-    ingresos > 0 ? (utilidad / ingresos) * 100 : 0;
-
-  const generarReporte = (tipo) => {
-    Swal.fire({
-      icon: "success",
-      title: "Reporte generado",
-      text: `El reporte de ${tipo.toLowerCase()} se encuentra listo para consultar.`,
-      timer: 1800,
-      showConfirmButton: false,
-    });
+  const formatCOP = (valor) => {
+    return "$" + Math.round(valor).toLocaleString("es-CO");
   };
 
+  // =====================================================
+  // CÁLCULO DE MÉTRICAS
+  // =====================================================
+
+  const calcularMetricas = (producto) => {
+    const costoVariable =
+      producto.materiaPrima + producto.manoObra;
+
+    const costoTotal =
+      costoVariable + producto.cif;
+
+    const margenContribucion =
+      producto.precioVenta - costoVariable;
+
+    const alertaPrecio =
+      producto.precioVenta <= costoVariable;
+
+    const margenGananciaPct =
+      producto.precioVenta > 0
+        ? ((producto.precioVenta - costoTotal) /
+            producto.precioVenta) *
+          100
+        : 0;
+
+    return {
+      ...producto,
+      costoVariable,
+      costoTotal,
+      margenContribucion,
+      alertaPrecio,
+      margenGananciaPct,
+    };
+  };
+
+  // =====================================================
+  // PRODUCTOS CALCULADOS
+  // =====================================================
+
+  const productosCalculados = productosCosto
+    .map(calcularMetricas)
+    .filter(
+      (producto) =>
+        !filtroProducto ||
+        producto.producto === filtroProducto
+    )
+    .sort((a, b) =>
+      a.producto.localeCompare(b.producto)
+    );
+
+  // =====================================================
+  // TOTALES
+  // =====================================================
+
+  const totalCosto = productosCalculados.reduce(
+    (total, producto) =>
+      total + producto.costoTotal,
+    0
+  );
+
+  const productosConAlerta =
+    productosCalculados.filter(
+      (producto) => producto.alertaPrecio
+    ).length;
+
+  // =====================================================
+  // TOAST
+  // =====================================================
+
+  const mostrarToast = (mensaje) => {
+    setToastMensaje(mensaje);
+
+    setTimeout(() => {
+      setToastMensaje("");
+    }, 3200);
+  };
+
+  // =====================================================
+  // DETALLE
+  // =====================================================
+
+  const verDetalle = (producto) => {
+    setProductoDetalle(producto);
+  };
+
+  const cerrarDetalle = () => {
+    setProductoDetalle(null);
+  };
+
+  // =====================================================
+  // LIMPIAR FILTRO
+  // =====================================================
+
+  const limpiarFiltro = () => {
+    setFiltroProducto("");
+
+    mostrarToast(
+      "Mostrando el resumen general de todos los productos."
+    );
+  };
+
+  // =====================================================
+  // EXPORTAR PDF
+  // =====================================================
+
+  const exportarPDF = () => {
+    mostrarToast(
+      "La exportación PDF se conectará cuando integremos la librería."
+    );
+  };
+
+  // =====================================================
+  // EXPORTAR EXCEL
+  // =====================================================
+
+  const exportarExcel = () => {
+    mostrarToast(
+      "La exportación Excel se conectará cuando integremos la librería."
+    );
+  };
+
+  // =====================================================
+  // RENDER
+  // =====================================================
+
   return (
-    <div className="admin-panel">
+    <div className="empleado-page">
 
-      {/* NAVBAR */}
-      <Navbar onToggleMenu={() => setMenuAbierto(!menuAbierto)} />
+      {/* =================================================
+          NAVBAR
+      ================================================= */}
 
-      {/* SIDEBAR */}
-      <Sidebar abierto={menuAbierto} onCerrar={() => setMenuAbierto(false)} />
+      <NavbarEmpleado />
 
-      {/* ================= CONTENIDO ================= */}
+      {/* =================================================
+          SIDEBAR
+      ================================================= */}
 
-      <main>
+      <SidebarEmpleado />
 
-        <div className="header">
+      {/* =================================================
+          CONTENIDO PRINCIPAL
+      ================================================= */}
 
-          <h1>
-            <i className="fas fa-file-chart-column"></i>
-            Reportes
-          </h1>
+      <main className="main-content">
 
-          <p>
-            Genera y consulta reportes sobre la producción,
-            costos y rentabilidad de tus jabones artesanales
-          </p>
+        {/* =================================================
+            ENCABEZADO
+        ================================================= */}
 
-        </div>
+        <div className="cabecera-top">
 
-        {/* ================= RESUMEN ================= */}
+          <div className="cabecera-titulo">
 
-        <div className="resumen-reportes">
+            <h1>
+              Reportes — Costos por producto
+            </h1>
 
-          <div className="tarjeta-reporte">
+            <p>
+              Costo de materia prima, mano de obra,
+              CIF y costo total por producto
+            </p>
 
-            <div className="icono-reporte verde">
-              <i className="fas fa-boxes-stacked"></i>
-            </div>
+            <div className="marca-tiempo">
 
-            <div>
-              <span>Unidades producidas</span>
-              <strong>{totalUnidades}</strong>
-              <small>Productos registrados</small>
-            </div>
+              <i className="fas fa-clock"></i>
 
-          </div>
-
-          <div className="tarjeta-reporte">
-
-            <div className="icono-reporte azul">
-              <i className="fas fa-money-bill-trend-up"></i>
-            </div>
-
-            <div>
-              <span>Ingresos</span>
-              <strong>{formatCOP(ingresos)}</strong>
-              <small>Ventas estimadas</small>
-            </div>
-
-          </div>
-
-          <div className="tarjeta-reporte">
-
-            <div className="icono-reporte rojo">
-              <i className="fas fa-money-bill-wave"></i>
-            </div>
-
-            <div>
-              <span>Costos</span>
-              <strong>{formatCOP(costos)}</strong>
-              <small>Costo de fabricación</small>
-            </div>
-
-          </div>
-
-          <div className="tarjeta-reporte">
-
-            <div className="icono-reporte amarillo">
-              <i className="fas fa-chart-line"></i>
-            </div>
-
-            <div>
-              <span>Utilidad</span>
-              <strong>{formatCOP(utilidad)}</strong>
-              <small>Margen {margen.toFixed(1)}%</small>
-            </div>
-
-          </div>
-
-        </div>
-
-        {/* ================= GENERAR REPORTES ================= */}
-
-        <section className="seccion">
-
-          <div className="seccion-head">
-
-            <div>
-
-              <h2>
-                <i className="fas fa-folder-open"></i>
-                Generar reportes
-              </h2>
-
-              <p>
-                Selecciona el tipo de información que deseas
-                consultar
-              </p>
-
-            </div>
-
-            <select
-              className="selector-reporte"
-              value={periodo}
-              onChange={(e) =>
-                setPeriodo(e.target.value)
-              }
-            >
-
-              <option value="Diario">Diario</option>
-              <option value="Semanal">Semanal</option>
-              <option value="Mensual">Mensual</option>
-              <option value="Anual">Anual</option>
-
-            </select>
-
-          </div>
-
-          <div className="tarjetas-reportes">
-
-            <div className="tipo-reporte">
-
-              <div className="tipo-reporte-icono">
-                <i className="fas fa-box"></i>
-              </div>
-
-              <div className="tipo-reporte-info">
-
-                <h3>Reporte de insumos</h3>
-
-                <p>
-                  Consulta existencias, precios, categorías
-                  y valor del inventario.
-                </p>
-
-              </div>
-
-              <button
-                className="btn-reporte"
-                onClick={() =>
-                  generarReporte("Insumos")
-                }
-              >
-                <i className="fas fa-file-arrow-down"></i>
-                Generar
-              </button>
-
-            </div>
-
-            <div className="tipo-reporte">
-
-              <div className="tipo-reporte-icono">
-                <i className="fas fa-soap"></i>
-              </div>
-
-              <div className="tipo-reporte-info">
-
-                <h3>Reporte de productos</h3>
-
-                <p>
-                  Consulta los jabones registrados y sus
-                  precios de venta.
-                </p>
-
-              </div>
-
-              <button
-                className="btn-reporte"
-                onClick={() =>
-                  generarReporte("Productos")
-                }
-              >
-                <i className="fas fa-file-arrow-down"></i>
-                Generar
-              </button>
-
-            </div>
-
-            <div className="tipo-reporte">
-
-              <div className="tipo-reporte-icono">
-                <i className="fas fa-calculator"></i>
-              </div>
-
-              <div className="tipo-reporte-info">
-
-                <h3>Reporte de costos</h3>
-
-                <p>
-                  Detalla costos directos, indirectos y
-                  costo total de fabricación.
-                </p>
-
-              </div>
-
-              <button
-                className="btn-reporte"
-                onClick={() =>
-                  generarReporte("Costos")
-                }
-              >
-                <i className="fas fa-file-arrow-down"></i>
-                Generar
-              </button>
-
-            </div>
-
-            <div className="tipo-reporte">
-
-              <div className="tipo-reporte-icono">
-                <i className="fas fa-chart-pie"></i>
-              </div>
-
-              <div className="tipo-reporte-info">
-
-                <h3>Reporte de rentabilidad</h3>
-
-                <p>
-                  Analiza ganancias, márgenes y productos
-                  con mayor rentabilidad.
-                </p>
-
-              </div>
-
-              <button
-                className="btn-reporte"
-                onClick={() =>
-                  generarReporte("Rentabilidad")
-                }
-              >
-                <i className="fas fa-file-arrow-down"></i>
-                Generar
-              </button>
+              <span>
+                Datos actualizados al momento de generar
+                el reporte
+              </span>
 
             </div>
 
           </div>
 
-        </section>
+          {/* BOTONES DE EXPORTACIÓN */}
 
-        {/* ================= REPORTE FINANCIERO ================= */}
-
-        <section className="seccion">
-
-          <div className="seccion-head">
-
-            <div>
-
-              <h2>
-                <i className="fas fa-chart-column"></i>
-                Resumen financiero
-              </h2>
-
-              <p>
-                Información correspondiente al periodo{" "}
-                <strong>{periodo}</strong>
-              </p>
-
-            </div>
+          <div className="acciones-cabecera">
 
             <button
-              className="btn-primario"
-              onClick={() =>
-                generarReporte(
-                  `Resumen financiero ${periodo}`
-                )
-              }
+              type="button"
+              className="btn-pdf"
+              onClick={exportarPDF}
             >
-              <i className="fas fa-file-pdf"></i>
-              Generar reporte
+              <i className="fa-regular fa-file-pdf"></i>
+              Exportar PDF
+            </button>
+
+            <button
+              type="button"
+              className="btn-excel"
+              onClick={exportarExcel}
+            >
+              <i className="fas fa-file-excel"></i>
+              Exportar Excel
             </button>
 
           </div>
 
-          <div className="resumen-financiero">
+        </div>
 
-            <div className="dato-financiero">
+        {/* =================================================
+            TARJETAS DE RESUMEN
+        ================================================= */}
 
-              <span>Ingresos por ventas</span>
+        <div className="tarjetas-resumen tarjetas-resumen-3">
 
-              <strong>
-                {formatCOP(ingresos)}
-              </strong>
+          {/* PRODUCTOS */}
 
-              <small>
-                Total estimado
-              </small>
+          <div className="tarjeta-res tarjeta-azul">
 
-            </div>
+            <div className="tarjeta-icono">
 
-            <div className="dato-financiero">
-
-              <span>Costo de producción</span>
-
-              <strong>
-                {formatCOP(costos)}
-              </strong>
-
-              <small>
-                Insumos y fabricación
-              </small>
+              <i className="fas fa-cube"></i>
 
             </div>
 
-            <div className="dato-financiero destacado">
+            <div className="tarjeta-info">
 
-              <span>Utilidad estimada</span>
+              <div className="tarjeta-valor">
+                {productosCalculados.length}
+              </div>
 
-              <strong>
-                {formatCOP(utilidad)}
-              </strong>
-
-              <small>
-                Margen {margen.toFixed(1)}%
-              </small>
+              <div className="tarjeta-label">
+                Productos en el reporte
+              </div>
 
             </div>
 
           </div>
 
-        </section>
+          {/* COSTO TOTAL */}
 
-        {/* ================= PRODUCTOS ================= */}
+          <div className="tarjeta-res tarjeta-verde">
 
-        <section className="seccion">
+            <div className="tarjeta-icono">
 
-          <div className="seccion-head">
+              <i className="fas fa-sack-dollar"></i>
 
-            <div>
+            </div>
 
-              <h2>
-                <i className="fas fa-ranking-star"></i>
-                Resumen por producto
-              </h2>
+            <div className="tarjeta-info">
 
-              <p>
-                Rendimiento de los jabones registrados
-              </p>
+              <div className="tarjeta-valor">
+                {formatCOP(totalCosto)}
+              </div>
+
+              <div className="tarjeta-label">
+                Costo total acumulado
+              </div>
 
             </div>
 
           </div>
 
-          <div className="tabla-reportes-wrap">
+          {/* ALERTAS */}
 
-            <table className="tabla-reportes">
+          <div className="tarjeta-res tarjeta-rojo">
+
+            <div className="tarjeta-icono">
+
+              <i className="fas fa-triangle-exclamation"></i>
+
+            </div>
+
+            <div className="tarjeta-info">
+
+              <div className="tarjeta-valor">
+                {productosConAlerta}
+              </div>
+
+              <div className="tarjeta-label">
+                Productos con precio insuficiente
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+        {/* =================================================
+            PANEL PRINCIPAL
+        ================================================= */}
+
+        <section className="panel">
+
+          {/* FILTROS */}
+
+          <div className="filtros-bar">
+
+            <div className="filtro-grupo">
+
+              <label className="filtro-label">
+                Producto
+              </label>
+
+              <select
+                className="filtro-pill"
+                value={filtroProducto}
+                onChange={(e) =>
+                  setFiltroProducto(e.target.value)
+                }
+              >
+
+                <option value="">
+                  Todos los productos (resumen general)
+                </option>
+
+                {productosCosto
+                  .map(
+                    (producto) =>
+                      producto.producto
+                  )
+                  .sort()
+                  .map((nombre) => (
+
+                    <option
+                      key={nombre}
+                      value={nombre}
+                    >
+                      {nombre}
+                    </option>
+
+                  ))}
+
+              </select>
+
+            </div>
+
+            {/* LIMPIAR FILTRO */}
+
+            <button
+              type="button"
+              className="btn-limpiar"
+              title="Ver todos los productos"
+              onClick={limpiarFiltro}
+            >
+
+              <i className="fas fa-rotate-left"></i>
+
+            </button>
+
+            {/* CONTADOR */}
+
+            <div className="filtro-contador">
+
+              {filtroProducto
+                ? "1 producto filtrado"
+                : `${productosCalculados.length} productos · resumen general`}
+
+            </div>
+
+          </div>
+
+          {/* =================================================
+              TABLA
+          ================================================= */}
+
+          <div className="tabla-wrap">
+
+            <table className="tabla-reporte">
 
               <thead>
 
                 <tr>
-                  <th>Producto</th>
-                  <th>Unidades</th>
-                  <th>Costo unitario</th>
-                  <th>Precio venta</th>
-                  <th>Ingresos</th>
-                  <th>Utilidad</th>
+
+                  <th>
+                    Producto
+                  </th>
+
+                  <th>
+                    Costo materia prima
+                  </th>
+
+                  <th>
+                    Mano de obra
+                  </th>
+
+                  <th>
+                    CIF
+                  </th>
+
+                  <th>
+                    Costo total
+                  </th>
+
+                  <th>
+                    Precio de venta
+                  </th>
+
+                  <th></th>
+
                 </tr>
 
               </thead>
 
               <tbody>
 
-                {productos.map((producto) => {
+                {productosCalculados.map(
+                  (producto) => (
 
-                  const ingresosProducto =
-                    producto.precio *
-                    producto.unidades;
-
-                  const utilidadProducto =
-                    (producto.precio -
-                      producto.costo) *
-                    producto.unidades;
-
-                  return (
                     <tr key={producto.id}>
+
+                      {/* PRODUCTO */}
 
                       <td>
 
-                        <div className="producto-reporte">
+                        <div className="producto-cell">
 
-                          <div className="producto-reporte-icono">
-                            <i className="fas fa-soap"></i>
+                          <div className="producto-icono">
+
+                            <i className="fas fa-cube"></i>
+
                           </div>
 
-                          <strong>
-                            {producto.nombre}
-                          </strong>
+                          <span>
+                            {producto.producto}
+                          </span>
 
                         </div>
 
                       </td>
 
-                      <td>
-                        <span className="cantidad-reporte">
-                          {producto.unidades}
-                        </span>
+                      {/* MATERIA PRIMA */}
+
+                      <td className="celda-num">
+
+                        {formatCOP(
+                          producto.materiaPrima
+                        )}
+
                       </td>
+
+                      {/* MANO DE OBRA */}
+
+                      <td className="celda-num">
+
+                        {formatCOP(
+                          producto.manoObra
+                        )}
+
+                      </td>
+
+                      {/* CIF */}
+
+                      <td className="celda-num">
+
+                        {formatCOP(
+                          producto.cif
+                        )}
+
+                      </td>
+
+                      {/* COSTO TOTAL */}
+
+                      <td className="celda-total">
+
+                        {formatCOP(
+                          producto.costoTotal
+                        )}
+
+                      </td>
+
+                      {/* PRECIO VENTA */}
+
+                      <td className="celda-num">
+
+                        {formatCOP(
+                          producto.precioVenta
+                        )}
+
+                      </td>
+
+                      {/* DETALLE */}
 
                       <td>
-                        {formatCOP(producto.costo)}
-                      </td>
 
-                      <td className="precio-reporte">
-                        {formatCOP(producto.precio)}
-                      </td>
+                        <button
+                          type="button"
+                          className="btn-icon"
+                          title="Ver desglose"
+                          onClick={() =>
+                            verDetalle(producto)
+                          }
+                        >
 
-                      <td>
-                        {formatCOP(ingresosProducto)}
-                      </td>
+                          <i className="fas fa-eye"></i>
 
-                      <td className="utilidad-reporte">
-                        {formatCOP(utilidadProducto)}
+                        </button>
+
                       </td>
 
                     </tr>
-                  );
-                })}
+
+                  )
+                )}
+
+                {/* =================================================
+                    FILA DE TOTALES
+                ================================================= */}
+
+                {productosCalculados.length > 1 && (
+
+                  <tr className="fila-totales">
+
+                    <td>
+
+                      <div className="producto-cell">
+
+                        <i className="fas fa-calculator"></i>
+
+                        <span>
+                          Total / Resumen general
+                        </span>
+
+                      </div>
+
+                    </td>
+
+                    <td className="celda-num">
+
+                      {formatCOP(
+                        productosCalculados.reduce(
+                          (total, producto) =>
+                            total +
+                            producto.materiaPrima,
+                          0
+                        )
+                      )}
+
+                    </td>
+
+                    <td className="celda-num">
+
+                      {formatCOP(
+                        productosCalculados.reduce(
+                          (total, producto) =>
+                            total +
+                            producto.manoObra,
+                          0
+                        )
+                      )}
+
+                    </td>
+
+                    <td className="celda-num">
+
+                      {formatCOP(
+                        productosCalculados.reduce(
+                          (total, producto) =>
+                            total +
+                            producto.cif,
+                          0
+                        )
+                      )}
+
+                    </td>
+
+                    <td className="celda-total">
+
+                      {formatCOP(totalCosto)}
+
+                    </td>
+
+                    <td className="celda-num">
+                      —
+                    </td>
+
+                    <td></td>
+
+                  </tr>
+
+                )}
 
               </tbody>
 
@@ -509,31 +648,343 @@ export default function Reportes() {
 
           </div>
 
+          {/* =================================================
+              ESTADO VACÍO
+          ================================================= */}
+
+          {productosCalculados.length === 0 && (
+
+            <div className="vacio-estado">
+
+              <i className="fas fa-box-open"></i>
+
+              <p>
+                No se encontraron datos de costos
+                para este producto.
+              </p>
+
+            </div>
+
+          )}
+
         </section>
 
-        {/* ================= INFORMACIÓN ================= */}
+      </main>
 
-        <div className="info-reporte">
+      {/* =====================================================
+          MODAL DE DETALLE
+      ===================================================== */}
 
-          <i className="fas fa-circle-info"></i>
+      {productoDetalle && (
 
-          <div>
+        <div
+          className="modal-overlay activo"
+          onClick={(e) => {
 
-            <strong>Información del reporte</strong>
+            if (
+              e.target === e.currentTarget
+            ) {
+              cerrarDetalle();
+            }
 
-            <p>
-              Los valores mostrados corresponden a datos de
-              demostración del sistema CostPro. Cuando el
-              sistema esté conectado a la base de datos,
-              estos reportes podrán generarse utilizando la
-              información real registrada.
-            </p>
+          }}
+        >
+
+          <div className="modal-box">
+
+            {/* CABECERA MODAL */}
+
+            <div className="modal-head">
+
+              <h2>
+
+                <i className="fas fa-chart-pie"></i>{" "}
+
+                {productoDetalle.producto}
+
+              </h2>
+
+              <button
+                type="button"
+                className="modal-cerrar"
+                onClick={cerrarDetalle}
+              >
+
+                <i className="fas fa-xmark"></i>
+
+              </button>
+
+            </div>
+
+            {/* CUERPO */}
+
+            <div className="modal-body">
+
+              {/* MÉTRICAS */}
+
+              <div className="detalle-grid">
+
+                <div className="detalle-campo">
+
+                  <span className="detalle-label">
+                    Costo total por unidad
+                  </span>
+
+                  <span className="detalle-valor">
+
+                    {formatCOP(
+                      productoDetalle.costoTotal
+                    )}
+
+                  </span>
+
+                </div>
+
+                <div className="detalle-campo">
+
+                  <span className="detalle-label">
+                    Precio de venta
+                  </span>
+
+                  <span className="detalle-valor">
+
+                    {formatCOP(
+                      productoDetalle.precioVenta
+                    )}
+
+                  </span>
+
+                </div>
+
+                <div className="detalle-campo">
+
+                  <span className="detalle-label">
+                    Margen de contribución / unidad
+                  </span>
+
+                  <span className="detalle-valor">
+
+                    {formatCOP(
+                      productoDetalle.margenContribucion
+                    )}
+
+                  </span>
+
+                </div>
+
+                <div className="detalle-campo">
+
+                  <span className="detalle-label">
+                    Margen de ganancia sobre costo
+                  </span>
+
+                  <span className="detalle-valor">
+
+                    {productoDetalle.margenGananciaPct.toFixed(
+                      1
+                    )}
+
+                    %
+
+                  </span>
+
+                </div>
+
+              </div>
+
+              {/* =================================================
+                  COMPOSICIÓN DEL COSTO
+              ================================================= */}
+
+              <p className="detalle-seccion-titulo">
+
+                Composición del costo por unidad
+
+              </p>
+
+              <div className="barra-grupo">
+
+                {/* MATERIA PRIMA */}
+
+                <div className="barra-fila">
+
+                  <span className="barra-nombre">
+                    Materia prima
+                  </span>
+
+                  <div className="barra-track">
+
+                    <div
+                      className="barra-fill barra-materia"
+                      style={{
+                        width: `${
+                          (productoDetalle.materiaPrima /
+                            productoDetalle.costoTotal) *
+                          100
+                        }%`,
+                      }}
+                    ></div>
+
+                  </div>
+
+                  <span className="barra-valor">
+
+                    {formatCOP(
+                      productoDetalle.materiaPrima
+                    )}
+
+                  </span>
+
+                </div>
+
+                {/* MANO DE OBRA */}
+
+                <div className="barra-fila">
+
+                  <span className="barra-nombre">
+                    Mano de obra
+                  </span>
+
+                  <div className="barra-track">
+
+                    <div
+                      className="barra-fill barra-obra"
+                      style={{
+                        width: `${
+                          (productoDetalle.manoObra /
+                            productoDetalle.costoTotal) *
+                          100
+                        }%`,
+                      }}
+                    ></div>
+
+                  </div>
+
+                  <span className="barra-valor">
+
+                    {formatCOP(
+                      productoDetalle.manoObra
+                    )}
+
+                  </span>
+
+                </div>
+
+                {/* CIF */}
+
+                <div className="barra-fila">
+
+                  <span className="barra-nombre">
+                    CIF
+                  </span>
+
+                  <div className="barra-track">
+
+                    <div
+                      className="barra-fill barra-cif"
+                      style={{
+                        width: `${
+                          (productoDetalle.cif /
+                            productoDetalle.costoTotal) *
+                          100
+                        }%`,
+                      }}
+                    ></div>
+
+                  </div>
+
+                  <span className="barra-valor">
+
+                    {formatCOP(
+                      productoDetalle.cif
+                    )}
+
+                  </span>
+
+                </div>
+
+              </div>
+
+              {/* =================================================
+                  ALERTA
+              ================================================= */}
+
+              {productoDetalle.alertaPrecio && (
+
+                <div className="detalle-alerta">
+
+                  <i className="fas fa-triangle-exclamation"></i>
+
+                  <span>
+
+                    El precio de venta no cubre el costo
+                    variable por unidad. Reporta esta
+                    situación al administrador.
+
+                  </span>
+
+                </div>
+
+              )}
+
+              {/* =================================================
+                  NOTA
+              ================================================= */}
+
+              <div className="detalle-nota">
+
+                <i className="fas fa-shield-halved"></i>
+
+                <span>
+
+                  Estos valores se recalculan
+                  automáticamente cuando cambian los
+                  costos o el precio de venta registrados
+                  en el sistema.
+
+                </span>
+
+              </div>
+
+            </div>
+
+            {/* PIE DEL MODAL */}
+
+            <div className="modal-footer">
+
+              <button
+                type="button"
+                className="btn-secundario"
+                onClick={cerrarDetalle}
+              >
+                Cerrar
+              </button>
+
+            </div>
 
           </div>
 
         </div>
 
-      </main>
+      )}
+
+      {/* =====================================================
+          TOAST
+      ===================================================== */}
+
+      {toastMensaje && (
+
+        <div className="toast visible">
+
+          <i className="fas fa-circle-check"></i>
+
+          <span>
+            {toastMensaje}
+          </span>
+
+        </div>
+
+      )}
 
     </div>
   );
